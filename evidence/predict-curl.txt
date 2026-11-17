@@ -1,6 +1,6 @@
 === Laboratory Quality Prediction System - API evidence ===
-Generated: 2026-11-17T17:48:58.465005+00:00
-Base URL: http://127.0.0.1:8010
+Generated: 2026-11-17T19:22:37.178356+00:00
+Base URL: http://127.0.0.1:8080
 
 --- GET /health
 HTTP 200
@@ -26,7 +26,7 @@ HTTP 200
   "status": "ok",
   "target_definition": "quality_fail = 'Machine failure'  (1 = FAIL quality inspection, 0 = Pass). Ground truth 'Machine failure' is the manufacturer's own breakdown label; the quality verdict is derived from it as quality_pass = 1 - quality_fail.",
   "threshold": 0.4100000000000001,
-  "trained_at": "2026-11-17T15:55:54.309920+00:00"
+  "trained_at": "2026-11-17T19:20:00.463052+00:00"
 }
 
 --- POST /predict  (a normal, in-spec product)

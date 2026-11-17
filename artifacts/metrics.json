@@ -1,77 +1,92 @@
 {
   "model_name": "hgb",
-  "threshold": 0.7500000000000002,
+  "threshold": 0.4100000000000001,
   "target_definition": "quality_fail = 'Machine failure'  (1 = FAIL quality inspection, 0 = Pass). Ground truth 'Machine failure' is the manufacturer's own breakdown label; the quality verdict is derived from it as quality_pass = 1 - quality_fail.",
   "test_metrics": {
-    "pr_auc": 0.8844756457286701,
-    "roc_auc": 0.9847080136402387,
-    "accuracy": 0.987,
-    "precision": 0.7763157894736842,
-    "recall": 0.8676470588235294,
-    "f2": 0.8477011494252874,
+    "pr_auc": 0.896639936648834,
+    "roc_auc": 0.9849515893313848,
+    "accuracy": 0.9775,
+    "precision": 0.6161616161616161,
+    "recall": 0.8970588235294118,
+    "f2": 0.8221024258760108,
     "confusion_matrix": {
-      "tn": 1915,
-      "fp": 17,
-      "fn": 9,
-      "tp": 59
+      "tn": 1894,
+      "fp": 38,
+      "fn": 7,
+      "tp": 61
     }
   },
   "cv_results": [
     {
       "model": "hgb",
-      "cv_pr_auc": 0.8300002110797546,
-      "best_params": {},
-      "threshold": 0.7500000000000002,
+      "cv_pr_auc": 0.8444730774957435,
+      "best_params": {
+        "clf__l2_regularization": 1.0,
+        "clf__learning_rate": 0.2,
+        "clf__max_iter": 200,
+        "clf__max_leaf_nodes": 31,
+        "clf__min_samples_leaf": 10
+      },
+      "threshold": 0.4100000000000001,
       "eval": {
-        "pr_auc": 0.8844756457286701,
-        "roc_auc": 0.9847080136402387,
-        "accuracy": 0.987,
-        "precision": 0.7763157894736842,
-        "recall": 0.8676470588235294,
-        "f2": 0.8477011494252874,
+        "pr_auc": 0.896639936648834,
+        "roc_auc": 0.9849515893313848,
+        "accuracy": 0.9775,
+        "precision": 0.6161616161616161,
+        "recall": 0.8970588235294118,
+        "f2": 0.8221024258760108,
         "confusion_matrix": {
-          "tn": 1915,
-          "fp": 17,
-          "fn": 9,
-          "tp": 59
+          "tn": 1894,
+          "fp": 38,
+          "fn": 7,
+          "tp": 61
         }
       }
     },
     {
       "model": "rf",
-      "cv_pr_auc": 0.8027477563357761,
-      "best_params": {},
-      "threshold": 0.38000000000000006,
+      "cv_pr_auc": 0.8255070176530417,
+      "best_params": {
+        "clf__class_weight": "balanced_subsample",
+        "clf__max_depth": null,
+        "clf__max_features": 0.5,
+        "clf__min_samples_leaf": 3,
+        "clf__n_estimators": 500
+      },
+      "threshold": 0.36000000000000004,
       "eval": {
-        "pr_auc": 0.7972407924742451,
-        "roc_auc": 0.962527402265254,
-        "accuracy": 0.981,
-        "precision": 0.6875,
-        "recall": 0.8088235294117647,
-        "f2": 0.78125,
+        "pr_auc": 0.8524714678851976,
+        "roc_auc": 0.9808336378029472,
+        "accuracy": 0.985,
+        "precision": 0.75,
+        "recall": 0.8382352941176471,
+        "f2": 0.8189655172413793,
         "confusion_matrix": {
-          "tn": 1907,
-          "fp": 25,
-          "fn": 13,
-          "tp": 55
+          "tn": 1913,
+          "fp": 19,
+          "fn": 11,
+          "tp": 57
         }
       }
     },
     {
       "model": "logreg",
-      "cv_pr_auc": 0.475592688836861,
-      "best_params": {},
+      "cv_pr_auc": 0.4759929740311635,
+      "best_params": {
+        "clf__C": 1.0,
+        "clf__solver": "liblinear"
+      },
       "threshold": 0.7700000000000002,
       "eval": {
-        "pr_auc": 0.4777060618500427,
-        "roc_auc": 0.9391669711362806,
-        "accuracy": 0.9475,
-        "precision": 0.362962962962963,
+        "pr_auc": 0.4777342900329018,
+        "roc_auc": 0.9391821946169773,
+        "accuracy": 0.947,
+        "precision": 0.3602941176470588,
         "recall": 0.7205882352941176,
-        "f2": 0.6019656019656019,
+        "f2": 0.6004901960784313,
         "confusion_matrix": {
-          "tn": 1846,
-          "fp": 86,
+          "tn": 1845,
+          "fp": 87,
           "fn": 19,
           "tp": 49
         }
@@ -81,56 +96,56 @@
   "feature_importance": [
     {
       "feature": "temp_diff",
-      "importance_mean": 0.5255418596018712,
-      "importance_std": 0.03968515296257812
+      "importance_mean": 0.5014339945304822,
+      "importance_std": 0.05069518580538016
     },
     {
       "feature": "rot_speed",
-      "importance_mean": 0.4452820550782312,
-      "importance_std": 0.04525250388124831
-    },
-    {
-      "feature": "torque_per_krpm",
-      "importance_mean": 0.38359125892669244,
-      "importance_std": 0.03855282188193753
+      "importance_mean": 0.48067179518423864,
+      "importance_std": 0.048904125111555896
     },
     {
       "feature": "torque",
-      "importance_mean": 0.23737589291088312,
-      "importance_std": 0.01741810628434213
+      "importance_mean": 0.2505460688730084,
+      "importance_std": 0.015128307843587293
     },
     {
       "feature": "tool_wear",
-      "importance_mean": 0.1942682547603741,
-      "importance_std": 0.02013494964392525
+      "importance_mean": 0.21607094216781159,
+      "importance_std": 0.019419591689511025
+    },
+    {
+      "feature": "torque_per_krpm",
+      "importance_mean": 0.1972388761692075,
+      "importance_std": 0.02954501986962589
     },
     {
       "feature": "wear_per_load",
-      "importance_mean": 0.035589838090715684,
-      "importance_std": 0.008704288110580459
+      "importance_mean": 0.025538304421312753,
+      "importance_std": 0.007606547862980813
     },
     {
       "feature": "type_L",
-      "importance_mean": 0.011338777539048373,
-      "importance_std": 0.00594549100424908
+      "importance_mean": 0.012579078613108408,
+      "importance_std": 0.0062732051797819675
     },
     {
       "feature": "proc_temp",
-      "importance_mean": 0.0036755708913407846,
-      "importance_std": 0.0030775781183515686
+      "importance_mean": 0.007475623530513331,
+      "importance_std": 0.0023828749172891592
+    },
+    {
+      "feature": "air_temp",
+      "importance_mean": 0.002164859290546861,
+      "importance_std": 0.004402296335662208
     },
     {
       "feature": "type_M",
-      "importance_mean": 0.0034084812477995774,
-      "importance_std": 0.003477911197747647
+      "importance_mean": 0.002163119527791346,
+      "importance_std": 0.002751192998672293
     },
     {
       "feature": "proc_temp_oos",
-      "importance_mean": 0.0,
-      "importance_std": 0.0
-    },
-    {
-      "feature": "rot_speed_oos",
       "importance_mean": 0.0,
       "importance_std": 0.0
     },
@@ -140,16 +155,16 @@
       "importance_std": 0.0
     },
     {
-      "feature": "air_temp",
-      "importance_mean": -0.0007158759657317937,
-      "importance_std": 0.0016489660079285736
+      "feature": "rot_speed_oos",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
     },
     {
       "feature": "torque_oos",
-      "importance_mean": -0.004385269895339739,
-      "importance_std": 0.002526045125773632
+      "importance_mean": -3.6350831474707414e-05,
+      "importance_std": 0.0014147609023465717
     }
   ],
-  "trained_at": "2026-11-17T18:35:53.565848+00:00",
+  "trained_at": "2026-11-17T19:32:31.795496+00:00",
   "sklearn_version": "1.9.0"
 }
