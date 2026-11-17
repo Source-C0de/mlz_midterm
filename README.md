@@ -344,8 +344,10 @@ pip install -r requirements.txt          # runtime: training + API
 pip install -r requirements-dev.txt      # adds matplotlib, seaborn, jupyterlab
 ```
 
-`requirements-dev.txt` includes `requirements.txt`, so the second command is
-sufficient on its own.
+`requirements.txt` holds the runtime dependencies (training + API).
+`requirements-dev.txt` holds the extra packages the notebook needs
+(matplotlib, seaborn, jupyterlab, ipykernel) and lists them explicitly, so
+installing both files gives you a complete environment.
 
 ---
 
@@ -678,10 +680,11 @@ container listens on `$PORT` (default `8000`) and exposes `/health`.
 - Package versions are pinned in `requirements.txt`.
 - The dataset is **committed** at `data/raw/ai4i2020.csv`; nothing needs to be
   downloaded, though `train.py` can fetch it automatically.
-- The **trained model is committed** too (`artifacts/model.joblib`, 104 KB), so
+- The **trained model is committed** too (`artifacts/model.joblib`, 145 KB), so
   a fresh clone can serve requests immediately without retraining.
-- `train.py` reproduces `artifacts/model.joblib` from scratch, and the
-  notebook's training cells mirror it line for line.
+- `train.py` reproduces `artifacts/model.joblib` from scratch — the committed
+  artefact came from a full grid search (test PR-AUC 0.8966, threshold 0.41) —
+  and the notebook's training cells mirror it line for line.
 - The notebook ends with a consistency guard asserting that the feature list
   still matches `src/data.py` and that no fault-subtype column has leaked in.
 
@@ -689,6 +692,7 @@ Verify from a clean checkout:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
 # The committed model is ready to serve straight away:
