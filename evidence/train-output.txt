@@ -1,0 +1,43 @@
+Loaded 10,000 rows x 14 columns from data\raw\ai4i2020.csv
+Target 'quality_fail' (1 = FAIL): 339 failures (3.39% of rows)
+Train: 8,000 rows (271 FAIL) | Test: 2,000 rows (68 FAIL)
+
+--- Tuning 'logreg' ---
+best params : {'clf__C': 1.0, 'clf__solver': 'liblinear'}
+CV PR-AUC   : 0.4760
+
+--- Tuning 'rf' ---
+best params : {'clf__class_weight': 'balanced_subsample', 'clf__max_depth': None, 'clf__max_features': 0.5, 'clf__min_samples_leaf': 3, 'clf__n_estimators': 500}
+CV PR-AUC   : 0.8255
+
+--- Tuning 'hgb' ---
+best params : {'clf__l2_regularization': 1.0, 'clf__learning_rate': 0.2, 'clf__max_iter': 200, 'clf__max_leaf_nodes': 31, 'clf__min_samples_leaf': 10}
+CV PR-AUC   : 0.8445
+
+Selected model: hgb
+
+Top 5 features by permutation importance:
+  temp_diff       0.50143
+  rot_speed       0.48067
+  torque          0.25055
+  tool_wear       0.21607
+  torque_per_krpm 0.19724
+
+=== Model comparison (5-fold CV on train, metric: PR-AUC) ===
+model        cv_pr_auc   roc_auc      f2   recall
+-------------------------------------------------
+hgb             0.8445    0.9850  0.8221   0.8971
+rf              0.8255    0.9808  0.8190   0.8382
+logreg          0.4760    0.9392  0.6005   0.7206
+
+=== Final model: hgb  (threshold=0.41) ===
+Test PR-AUC  : 0.8966
+Test ROC-AUC : 0.9850
+Recall       : 0.8971
+Precision    : 0.6162
+F2           : 0.8221
+Accuracy     : 0.9775  (misleading at 3.4% prevalence)
+Confusion    : {'tn': 1894, 'fp': 38, 'fn': 7, 'tp': 61}
+
+Saved model     -> artifacts\model.joblib
+Saved metrics   -> artifacts\metrics.json

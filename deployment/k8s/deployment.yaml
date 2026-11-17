@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quality-api
+  labels:
+    app: quality-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quality-api
+  template:
+    metadata:
+      labels:
+        app: quality-api
+    spec:
+      containers:
+        - name: api
+          # Build locally:  docker build -t quality-api:1.0 .
+          # Push to a registry for a remote cluster, e.g.
+          #   docker tag quality-api:1.0 gcr.io/<project>/quality-api:1.0
+          #   docker push gcr.io/<project>/quality-api:1.0
+          image: quality-api:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MODEL_PATH
+              value: /app/artifacts/model.joblib
+            - name: PORT
+              value: "8000"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

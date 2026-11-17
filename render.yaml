@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: quality-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: MODEL_PATH
+        value: /app/artifacts/model.joblib
+      - key: PORT
+        value: "8000"
+    autoDeploy: true

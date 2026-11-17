@@ -1,0 +1,110 @@
+=== Laboratory Quality Prediction System - API evidence ===
+Generated: 2026-11-17T17:48:58.465005+00:00
+Base URL: http://127.0.0.1:8010
+
+--- GET /health
+HTTP 200
+{
+  "features": [
+    "air_temp",
+    "proc_temp",
+    "rot_speed",
+    "torque",
+    "tool_wear",
+    "temp_diff",
+    "torque_per_krpm",
+    "wear_per_load",
+    "air_temp_oos",
+    "proc_temp_oos",
+    "torque_oos",
+    "rot_speed_oos",
+    "type_L",
+    "type_M"
+  ],
+  "model": "hgb",
+  "sklearn_version": "1.9.0",
+  "status": "ok",
+  "target_definition": "quality_fail = 'Machine failure'  (1 = FAIL quality inspection, 0 = Pass). Ground truth 'Machine failure' is the manufacturer's own breakdown label; the quality verdict is derived from it as quality_pass = 1 - quality_fail.",
+  "threshold": 0.4100000000000001,
+  "trained_at": "2026-11-17T15:55:54.309920+00:00"
+}
+
+--- POST /predict  (a normal, in-spec product)
+HTTP 200
+{
+  "explanation": {
+    "air_temp_oos": 0,
+    "proc_temp_oos": 0,
+    "rot_speed_oos": 0,
+    "torque_oos": 0
+  },
+  "machine_failure_probability": 0.004675,
+  "pass_probability": 0.995325,
+  "quality_label": 0,
+  "quality_status": "Pass",
+  "threshold": 0.4100000000000001
+}
+
+--- POST /predict  (a real FAILURE row from the dataset)
+HTTP 200
+{
+  "explanation": {
+    "air_temp_oos": 0,
+    "proc_temp_oos": 0,
+    "rot_speed_oos": 1,
+    "torque_oos": 1
+  },
+  "machine_failure_probability": 0.992219,
+  "pass_probability": 0.007781,
+  "quality_label": 1,
+  "quality_status": "Fail",
+  "threshold": 0.4100000000000001
+}
+
+--- POST /predict/batch
+HTTP 200
+{
+  "count": 2,
+  "predictions": [
+    {
+      "explanation": {
+        "air_temp_oos": 0,
+        "proc_temp_oos": 0,
+        "rot_speed_oos": 0,
+        "torque_oos": 0
+      },
+      "machine_failure_probability": 0.004675,
+      "pass_probability": 0.995325,
+      "quality_label": 0,
+      "quality_status": "Pass",
+      "threshold": 0.4100000000000001
+    },
+    {
+      "explanation": {
+        "air_temp_oos": 0,
+        "proc_temp_oos": 0,
+        "rot_speed_oos": 1,
+        "torque_oos": 1
+      },
+      "machine_failure_probability": 0.992219,
+      "pass_probability": 0.007781,
+      "quality_label": 1,
+      "quality_status": "Fail",
+      "threshold": 0.4100000000000001
+    }
+  ]
+}
+
+--- POST /predict  (missing field -> 400)
+HTTP 400
+{
+  "error": "bad_request",
+  "message": "Missing required fields: process_temperature, rotational_speed, torque, tool_wear"
+}
+
+--- POST /predict  (non-numeric field -> 400)
+HTTP 400
+{
+  "error": "bad_request",
+  "message": "Field 'air_temperature' must be a number, got 'hot'"
+}

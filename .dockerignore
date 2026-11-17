@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+venv
+env
+__pycache__
+*.py[cod]
+.ipynb_checkpoints
+evidence
+deployment
+notebook.ipynb
+requirements-dev.txt
+README.md
