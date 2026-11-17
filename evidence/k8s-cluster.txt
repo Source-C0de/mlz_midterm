@@ -1,0 +1,67 @@
+================================================================
+ Kubernetes cluster deployment - LIVE EVIDENCE
+================================================================
+Cluster : k3d 'quality' (single-node k3s v1.22.6, containerised)
+Client  : kubectl v1.36.1
+Captured: 2026-11-17 18:50:02 UTC
+
+### kubectl get nodes
+NAME                   STATUS   ROLES                  AGE     VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE   KERNEL-VERSION                       CONTAINER-RUNTIME
+k3d-quality-server-0   Ready    control-plane,master   8m52s   v1.22.6+k3s1   172.18.0.3    <none>        K3s dev    5.15.167.4-microsoft-standard-WSL2   containerd://1.5.9-k3s1
+
+### kubectl get pods -o wide
+NAME                           READY   STATUS    RESTARTS   AGE     IP           NODE                   NOMINATED NODE   READINESS GATES
+quality-api-546745549f-gmx99   1/1     Running   0          2m36s   10.42.0.11   k3d-quality-server-0   <none>           <none>
+quality-api-546745549f-x5z5g   1/1     Running   0          2m36s   10.42.0.12   k3d-quality-server-0   <none>           <none>
+
+### kubectl get svc -A
+NAMESPACE     NAME             TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+default       kubernetes       ClusterIP      10.43.0.1       <none>        443/TCP                      9m
+kube-system   kube-dns         ClusterIP      10.43.0.10      <none>        53/UDP,53/TCP,9153/TCP       8m57s
+kube-system   metrics-server   ClusterIP      10.43.200.219   <none>        443/TCP                      8m56s
+kube-system   traefik          LoadBalancer   10.43.114.236   172.18.0.3    80:30942/TCP,443:32563/TCP   7m39s
+default       quality-api      ClusterIP      10.43.169.215   <none>        80/TCP                       4m18s
+
+### kubectl get ingress
+NAME          CLASS    HOSTS           ADDRESS      PORTS   AGE
+quality-api   <none>   quality.local   172.18.0.3   80      4m18s
+
+### kubectl describe deployment quality-api (excerpt)
+  Containers:
+   api:
+    Image:      quality-api:1.0
+    Port:       8000/TCP
+    Host Port:  0/TCP
+    Limits:
+      cpu:     500m
+
+----------------------------------------------------------------
+### Live HTTP through the Ingress controller
+    (k3d Traefik LoadBalancer on 127.0.0.1:8081, Host: quality.local)
+----------------------------------------------------------------
+
+$ curl -s -H 'Host: quality.local' http://127.0.0.1:8081/health
+{"features":["air_temp","proc_temp","rot_speed","torque","tool_wear","temp_diff","torque_per_krpm","wear_per_load","air_temp_oos","proc_temp_oos","torque_oos","rot_speed_oos","type_L","type_M"],"model":"hgb","sklearn_version":"1.9.0","status":"ok","target_definition":"quality_fail = 'Machine failure'  (1 = FAIL quality inspection, 0 = Pass). Ground truth 'Machine failure' is the manufacturer's own breakdown label; the quality verdict is derived from it as quality_pass = 1 - quality_fail.","threshold":0.4100000000000001,"trained_at":"2026-11-17T17:30:03.234136+00:00"}
+
+
+$ curl -s -H 'Host: quality.local' -X POST http://127.0.0.1:8081/predict \
+    -H 'Content-Type: application/json' \
+    -d '{"type":"L","air_temperature":300.5,"process_temperature":310.2,"rotational_speed":1500,"torque":40.1,"tool_wear":12}'
+{"explanation":{"air_temp_oos":0,"proc_temp_oos":0,"rot_speed_oos":0,"torque_oos":0},"machine_failure_probability":0.004675,"pass_probability":0.995325,"quality_label":0,"quality_status":"Pass","threshold":0.4100000000000001}
+
+
+$ curl -s -H 'Host: quality.local' -X POST http://127.0.0.1:8081/predict/batch \
+    -H 'Content-Type: application/json' \
+    -d '{"items":[{"type":"L","air_temperature":300.5,"process_temperature":310.2,"rotational_speed":1500,"torque":40.1,"tool_wear":12},{"type":"H","air_temperature":311.2,"process_temperature":312.5,"rotational_speed":2100,"torque":55.0,"tool_wear":190}]}'
+{"error":"bad_request","message":"Request body must be a JSON object with a 'products' list"}
+
+
+### gunicorn access log inside the cluster (proves the probes are real)
+[pod/quality-api-546745549f-gmx99/api] 10.42.0.8 - - [17/Nov/2026:18:50:15 +0000] "GET /health HTTP/1.1" 200 574 "-" "curl/8.12.1"
+[pod/quality-api-546745549f-gmx99/api] 10.42.0.8 - - [17/Nov/2026:18:50:16 +0000] "POST /predict/batch HTTP/1.1" 400 94 "-" "curl/8.12.1"
+[pod/quality-api-546745549f-x5z5g/api] 10.42.0.8 - - [17/Nov/2026:18:49:49 +0000] "POST /predict HTTP/1.1" 200 226 "-" "curl/8.12.1"
+[pod/quality-api-546745549f-x5z5g/api] 10.42.0.1 - - [17/Nov/2026:18:49:50 +0000] "GET /health HTTP/1.1" 200 574 "-" "kube-probe/1.22"
+[pod/quality-api-546745549f-x5z5g/api] 10.42.0.1 - - [17/Nov/2026:18:50:00 +0000] "GET /health HTTP/1.1" 200 574 "-" "kube-probe/1.22"
+[pod/quality-api-546745549f-x5z5g/api] 10.42.0.1 - - [17/Nov/2026:18:50:00 +0000] "GET /health HTTP/1.1" 200 574 "-" "kube-probe/1.22"
+[pod/quality-api-546745549f-x5z5g/api] 10.42.0.1 - - [17/Nov/2026:18:50:10 +0000] "GET /health HTTP/1.1" 200 574 "-" "kube-probe/1.22"
+[pod/quality-api-546745549f-x5z5g/api] 10.42.0.8 - - [17/Nov/2026:18:50:16 +0000] "POST /predict HTTP/1.1" 200 226 "-" "curl/8.12.1"

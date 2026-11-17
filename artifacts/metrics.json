@@ -1,0 +1,155 @@
+{
+  "model_name": "hgb",
+  "threshold": 0.7500000000000002,
+  "target_definition": "quality_fail = 'Machine failure'  (1 = FAIL quality inspection, 0 = Pass). Ground truth 'Machine failure' is the manufacturer's own breakdown label; the quality verdict is derived from it as quality_pass = 1 - quality_fail.",
+  "test_metrics": {
+    "pr_auc": 0.8844756457286701,
+    "roc_auc": 0.9847080136402387,
+    "accuracy": 0.987,
+    "precision": 0.7763157894736842,
+    "recall": 0.8676470588235294,
+    "f2": 0.8477011494252874,
+    "confusion_matrix": {
+      "tn": 1915,
+      "fp": 17,
+      "fn": 9,
+      "tp": 59
+    }
+  },
+  "cv_results": [
+    {
+      "model": "hgb",
+      "cv_pr_auc": 0.8300002110797546,
+      "best_params": {},
+      "threshold": 0.7500000000000002,
+      "eval": {
+        "pr_auc": 0.8844756457286701,
+        "roc_auc": 0.9847080136402387,
+        "accuracy": 0.987,
+        "precision": 0.7763157894736842,
+        "recall": 0.8676470588235294,
+        "f2": 0.8477011494252874,
+        "confusion_matrix": {
+          "tn": 1915,
+          "fp": 17,
+          "fn": 9,
+          "tp": 59
+        }
+      }
+    },
+    {
+      "model": "rf",
+      "cv_pr_auc": 0.8027477563357761,
+      "best_params": {},
+      "threshold": 0.38000000000000006,
+      "eval": {
+        "pr_auc": 0.7972407924742451,
+        "roc_auc": 0.962527402265254,
+        "accuracy": 0.981,
+        "precision": 0.6875,
+        "recall": 0.8088235294117647,
+        "f2": 0.78125,
+        "confusion_matrix": {
+          "tn": 1907,
+          "fp": 25,
+          "fn": 13,
+          "tp": 55
+        }
+      }
+    },
+    {
+      "model": "logreg",
+      "cv_pr_auc": 0.475592688836861,
+      "best_params": {},
+      "threshold": 0.7700000000000002,
+      "eval": {
+        "pr_auc": 0.4777060618500427,
+        "roc_auc": 0.9391669711362806,
+        "accuracy": 0.9475,
+        "precision": 0.362962962962963,
+        "recall": 0.7205882352941176,
+        "f2": 0.6019656019656019,
+        "confusion_matrix": {
+          "tn": 1846,
+          "fp": 86,
+          "fn": 19,
+          "tp": 49
+        }
+      }
+    }
+  ],
+  "feature_importance": [
+    {
+      "feature": "temp_diff",
+      "importance_mean": 0.5255418596018712,
+      "importance_std": 0.03968515296257812
+    },
+    {
+      "feature": "rot_speed",
+      "importance_mean": 0.4452820550782312,
+      "importance_std": 0.04525250388124831
+    },
+    {
+      "feature": "torque_per_krpm",
+      "importance_mean": 0.38359125892669244,
+      "importance_std": 0.03855282188193753
+    },
+    {
+      "feature": "torque",
+      "importance_mean": 0.23737589291088312,
+      "importance_std": 0.01741810628434213
+    },
+    {
+      "feature": "tool_wear",
+      "importance_mean": 0.1942682547603741,
+      "importance_std": 0.02013494964392525
+    },
+    {
+      "feature": "wear_per_load",
+      "importance_mean": 0.035589838090715684,
+      "importance_std": 0.008704288110580459
+    },
+    {
+      "feature": "type_L",
+      "importance_mean": 0.011338777539048373,
+      "importance_std": 0.00594549100424908
+    },
+    {
+      "feature": "proc_temp",
+      "importance_mean": 0.0036755708913407846,
+      "importance_std": 0.0030775781183515686
+    },
+    {
+      "feature": "type_M",
+      "importance_mean": 0.0034084812477995774,
+      "importance_std": 0.003477911197747647
+    },
+    {
+      "feature": "proc_temp_oos",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "rot_speed_oos",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "air_temp_oos",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "air_temp",
+      "importance_mean": -0.0007158759657317937,
+      "importance_std": 0.0016489660079285736
+    },
+    {
+      "feature": "torque_oos",
+      "importance_mean": -0.004385269895339739,
+      "importance_std": 0.002526045125773632
+    }
+  ],
+  "trained_at": "2026-11-17T18:35:53.565848+00:00",
+  "sklearn_version": "1.9.0"
+}

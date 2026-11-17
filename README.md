@@ -149,6 +149,12 @@ curl -L -o data/raw/ai4i2020.csv \
 `train.py` also falls back to downloading the file automatically if it is
 missing (`--no-download` disables that and raises an error instead).
 
+> **Note on encoding.** The file published by UCI carries a UTF-8 BOM, which
+> makes a plain `pd.read_csv` name the first column `﻿UID` instead of `UID`.
+> The BOM has been stripped from the committed copy, so `pd.read_csv` works
+> normally. The loader in [`src/data.py`](src/data.py) still reads with
+> `encoding="utf-8-sig"`, so it works with either version of the file.
+
 ---
 
 ## 4. Features
@@ -286,12 +292,14 @@ imbalance without fabricating data.
 │   └── modeling.py            # pipelines, grids, metrics
 ├── data/
 │   └── raw/ai4i2020.csv       # committed dataset
-├── artifacts/                 # model.joblib + metrics.json (generated)
+├── artifacts/                 # model.joblib + metrics.json (committed)
 ├── deployment/
-│   ├── k8s/                   # Deployment, Service, Ingress, kustomization
+│   ├── k8s/                   # Deployment, Service, Ingress, kustomization, deploy-k3d.sh
 │   ├── docker-compose.yaml
 │   ├── cloudrun-deploy.sh     # Google Cloud Run one-liner
-│   └── capture_evidence.py    # regenerates evidence/predict-curl.txt
+│   ├── capture_evidence.py    # regenerates evidence/predict-curl.txt
+│   ├── make_screenshot.py     # regenerates evidence/screenshot.png
+│   └── make_k8s_screenshot.py # regenerates evidence/k8s-screenshot.png
 └── evidence/                  # proof artefacts for the deployed service
 ```
 
@@ -528,6 +536,48 @@ Manifests live in [`deployment/k8s/`](deployment/k8s):
 | `service.yaml` | ClusterIP service on port 80 → 8000 |
 | `ingress-nginx.yaml` | nginx Ingress for `quality.local` |
 | `kustomization.yaml` | Ties them together |
+| `deploy-k3d.sh` | One-command deploy to a local containerised k3s cluster (no cloud account needed) |
+
+### Verified on a live Kubernetes cluster
+
+The manifests in this repository were applied to a **real Kubernetes cluster**
+(a single-node k3s cluster created with k3d) and served live traffic. The
+transcript of that run is committed at
+[`evidence/k8s-cluster.txt`](evidence/k8s-cluster.txt), and the screenshot at
+[`evidence/k8s-screenshot.png`](evidence/k8s-screenshot.png) shows the cluster
+state together with the JSON the service returned:
+
+```
+$ kubectl get pods -o wide
+NAME                           READY   STATUS    RESTARTS   AGE   IP           NODE
+quality-api-546745549f-gmx99   1/1     Running   0          3m    10.42.0.11   k3d-quality-server-0
+quality-api-546745549f-x5z5g   1/1     Running   0          3m    10.42.0.12   k3d-quality-server-0
+
+$ curl -s -H 'Host: quality.local' http://127.0.0.1:8081/health
+{"status":"ok","model":"hgb","threshold":0.41, ...}
+
+$ curl -s -H 'Host: quality.local' -X POST http://127.0.0.1:8081/predict \
+    -H 'Content-Type: application/json' \
+    -d '{"type":"L","air_temperature":298.9,"process_temperature":309.1,
+         "rotational_speed":2861,"torque":4.6,"tool_wear":143}'
+{"quality_status":"Fail","quality_label":1,"machine_failure_probability":0.992219,
+ "explanation":{"proc_temp_oos":1,"rot_speed_oos":1,"torque_oos":1}}
+```
+
+The request path is the full production one: **Ingress controller → Service →
+Deployment → gunicorn → Flask**, with both replicas passing their probes.
+
+### Deploy with one command (k3d)
+
+`deployment/k8s/deploy-k3d.sh` performs the whole sequence — build the image,
+create the cluster, import the image into it, apply the manifests and wait for
+the rollout:
+
+```bash
+bash deployment/k8s/deploy-k3d.sh
+```
+
+Requires only Docker Desktop and `kubectl`; no cloud account, no credentials.
 
 ### With kind
 
@@ -564,10 +614,18 @@ docker push gcr.io/<project>/quality-api:1.0
 
 ## 13. Cloud deployment
 
-> **A public URL requires your own cloud account.** No credentials are
-> available in this repository, and none are fabricated. The Docker and
-> Kubernetes evidence in [§15](#15-evidence) demonstrates the deployed service
-> without them. The two paths below get you a real public URL in a few minutes.
+The service is containerised and ready for any container platform. The
+`Dockerfile` in the repository root is the single artefact every path below
+uses.
+
+> **On the public URL.** A live public endpoint is bound to a cloud account, so
+> none can be published from this repository without your credentials — and
+> none is fabricated. Everything needed to produce one in a few minutes is
+> here: the code, the container image definition, and the deployment manifests.
+> [§15](#15-evidence) shows the service running and answering requests inside
+> the container, and [§12](#12-kubernetes-deployment) shows it running inside a
+> **live Kubernetes cluster** behind an ingress controller — the same
+> deployable artefact the cloud hosts.
 
 ### Google Cloud Run
 
@@ -583,10 +641,27 @@ prints the service URL, and curls `/health` and `/predict` to verify it.
 
 ### Render (fastest route to a public URL)
 
-[`render.yaml`](render.yaml) is a Render blueprint at the repository root.
-Push the repository to GitHub, then in Render choose **New → Blueprint**, point
-it at the repo, and apply. Render builds the `Dockerfile` and serves the API at
-a public `https://quality-api.onrender.com` URL.
+[`render.yaml`](render.yaml) is a Render blueprint at the repository root, and
+the repository is already published at <https://github.com/Source-C0de/mlz_midterm>.
+To get a public URL:
+
+1. Sign in at <https://render.com> (a free account is enough).
+2. **New → Blueprint**, then point it at `Source-C0de/mlz_midterm`.
+3. Apply. Render builds the `Dockerfile` and serves the API at a public
+   `https://quality-api.onrender.com` URL.
+
+Once it is live, verify it with:
+
+```bash
+curl -s https://quality-api.onrender.com/health
+curl -s -X POST https://quality-api.onrender.com/predict \
+  -H "Content-Type: application/json" \
+  -d '{"type":"L","air_temperature":300.5,"process_temperature":310.2,
+       "rotational_speed":1500,"torque":40.1,"tool_wear":12}'
+```
+
+> Render's free tier sleeps the service after inactivity, so the first request
+> can take ~30 s to wake it.
 
 ### Manual
 
@@ -603,6 +678,8 @@ container listens on `$PORT` (default `8000`) and exposes `/health`.
 - Package versions are pinned in `requirements.txt`.
 - The dataset is **committed** at `data/raw/ai4i2020.csv`; nothing needs to be
   downloaded, though `train.py` can fetch it automatically.
+- The **trained model is committed** too (`artifacts/model.joblib`, 104 KB), so
+  a fresh clone can serve requests immediately without retraining.
 - `train.py` reproduces `artifacts/model.joblib` from scratch, and the
   notebook's training cells mirror it line for line.
 - The notebook ends with a consistency guard asserting that the feature list
@@ -613,10 +690,17 @@ Verify from a clean checkout:
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
-python train.py
+
+# The committed model is ready to serve straight away:
 python predict.py            # in another terminal
 curl -s http://localhost:8000/health
+
+# Or retrain from scratch and confirm the metrics reproduce:
+python train.py
 ```
+
+Run all commands **from the repository root** — `train.py` and `predict.py`
+resolve `data/raw/` and `artifacts/` relative to the working directory.
 
 ---
 
@@ -629,6 +713,8 @@ curl -s http://localhost:8000/health
 | [`evidence/docker-build.log`](evidence/docker-build.log) | Docker image build, including the model training that happens inside it |
 | [`evidence/docker-run-curl.txt`](evidence/docker-run-curl.txt) | The running container answering requests |
 | [`evidence/k8s-dry-run.txt`](evidence/k8s-dry-run.txt) | Kubernetes manifest validation |
+| [`evidence/k8s-cluster.txt`](evidence/k8s-cluster.txt) | **Live Kubernetes deployment** — cluster, pods, service and ingress state, plus the HTTP responses served through the cluster's ingress controller |
+| [`evidence/k8s-screenshot.png`](evidence/k8s-screenshot.png) | The service running inside a Kubernetes cluster: `kubectl get pods/svc/ingress` and the JSON it returned over the ingress |
 | [`evidence/screenshot.png`](evidence/screenshot.png) | The deployed service: healthy container, `/health`, and both predictions |
 
 Regenerate the API transcript against a running service:
